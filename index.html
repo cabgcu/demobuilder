@@ -1076,6 +1076,148 @@
             display: block;
         }
 
+        /* ---- Stacked card view ---- */
+        .stack-toggle-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid transparent; color: var(--text-muted); cursor: pointer; font-size: 0.7rem; transition: 0.2s; padding: 4px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase;
+        }
+        .stack-toggle-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: #fff; }
+        .stack-toggle-btn.active { background: var(--gradient-accent); color: #fff; }
+
+        .column-body.stack-mode {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 6px 14px 16px;
+            overflow: visible;
+        }
+        .stack-toolbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 2px;
+        }
+        .stack-pager {
+            font-size: 0.72rem; font-weight: 800; color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+        .stack-nav-btns { display: flex; gap: 6px; }
+        .stack-nav-btn {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+            color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; transition: 0.2s; padding: 0;
+        }
+        .stack-nav-btn:hover:not(:disabled) { background: rgba(10,132,255,0.25); border-color: #0A84FF; }
+        .stack-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+        .task-stack {
+            position: relative;
+            height: 300px;
+            margin-top: 40px;
+            margin-bottom: 46px;
+            touch-action: pan-x;
+            user-select: none;
+        }
+        .task-stack .task-card.stack-card {
+            position: absolute;
+            left: 0; right: 0; top: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 300px;
+            border-radius: 22px;
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        .task-stack .task-card.stack-card:hover { transform: none; }
+        .task-stack .task-card.stack-card.is-active {
+            transform: translateY(0) scale(1);
+            z-index: 30;
+            box-shadow: 0 25px 55px rgba(0,0,0,0.5);
+            border-color: #0A84FF;
+            cursor: default;
+        }
+        .task-stack .task-card.stack-card.is-active:hover { transform: translateY(0) scale(1); }
+        .task-stack .task-card.stack-card.is-prev {
+            transform: translateY(-38px) scale(0.95);
+            z-index: 15;
+            opacity: 0.6;
+        }
+        .task-stack .task-card.stack-card.is-next {
+            transform: translateY(52px) scale(0.95);
+            z-index: 20;
+            opacity: 0.95;
+        }
+        .task-stack .task-card.stack-card.is-next2 {
+            transform: translateY(86px) scale(0.90);
+            z-index: 10;
+            opacity: 0.6;
+        }
+        .task-stack .task-card.stack-card.is-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(110px) scale(0.85);
+            z-index: 0;
+        }
+
+        .stack-cover {
+            position: relative;
+            width: 100%;
+            height: 62%;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, rgba(124,58,237,.55), rgba(29,78,216,.5));
+            overflow: hidden;
+        }
+        .stack-cover img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+        .stack-cover-placeholder-icon {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            font-size: 2.6rem; opacity: 0.5;
+        }
+        .stack-badges-left {
+            position: absolute; top: 12px; left: 12px;
+            display: flex; flex-direction: column; gap: 6px; z-index: 2;
+        }
+        .stack-icon-badge {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: rgba(8,13,28,0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.72rem; color: #fff; border: 1px solid rgba(255,255,255,0.15);
+        }
+        .stack-badge-right {
+            position: absolute; top: 12px; right: 12px; z-index: 2;
+            background: rgba(255,255,255,0.92); color: #111;
+            font-size: 0.66rem; font-weight: 800; padding: 5px 11px; border-radius: 100px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25); white-space: nowrap;
+        }
+        .stack-badge-right.overdue { background: #FF3B30; color: #fff; }
+        .stack-badge-right.done { background: #34C759; color: #05170a; }
+        .stack-badge-right.soon { background: #FF9500; color: #1a0f00; }
+
+        .stack-info {
+            flex: 1; min-height: 0;
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            padding: 12px 16px;
+            background: rgba(8,13,28,0.92);
+        }
+        .stack-info-text { min-width: 0; }
+        .stack-title {
+            font-weight: 800; font-size: 1rem; color: #fff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .stack-subtitle {
+            font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .stack-cta {
+            flex-shrink: 0; border: none; cursor: pointer;
+            padding: 9px 16px; border-radius: 100px; font-weight: 800; font-size: 0.78rem;
+            background: var(--gradient-accent); color: #fff;
+            box-shadow: 0 8px 18px rgba(79,70,229,0.35);
+            transition: 0.2s;
+        }
+        .stack-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(79,70,229,0.45); }
+        .stack-cta.is-done { background: #34C759; box-shadow: 0 8px 18px rgba(52,199,89,0.3); }
+
         #taskModal .modal-content {
             padding: 0;
             max-width: 860px;
@@ -4862,6 +5004,87 @@
         showToast(t.completed ? '✅ Marked complete!' : 'Marked incomplete');
     }
 
+    // ---- Stacked card view state ----
+    let stackViewCols = new Set();
+    let stackActiveIndex = {};
+    try {
+        stackViewCols = new Set(JSON.parse(localStorage.getItem('cab_stack_cols') || '[]'));
+        stackActiveIndex = JSON.parse(localStorage.getItem('cab_stack_idx') || '{}');
+    } catch (e) {}
+
+    function persistStackViewState() {
+        try {
+            localStorage.setItem('cab_stack_cols', JSON.stringify([...stackViewCols]));
+            localStorage.setItem('cab_stack_idx', JSON.stringify(stackActiveIndex));
+        } catch (e) {}
+    }
+
+    function toggleColumnStackMode(colId) {
+        if (stackViewCols.has(colId)) stackViewCols.delete(colId);
+        else stackViewCols.add(colId);
+        persistStackViewState();
+        renderBoard();
+    }
+
+    function updateStackVisualState(colId) {
+        const stackEl = document.querySelector('.task-stack[data-col-id="' + CSS.escape(colId) + '"]');
+        if (!stackEl) return;
+        const cards = [...stackEl.children];
+        const activeIdx = Math.max(0, Math.min(stackActiveIndex[colId] || 0, cards.length - 1));
+        cards.forEach((card, i) => {
+            card.classList.remove('is-active', 'is-next', 'is-next2', 'is-prev', 'is-hidden');
+            const rel = i - activeIdx;
+            if (rel === 0) card.classList.add('is-active');
+            else if (rel === 1) card.classList.add('is-next');
+            else if (rel === 2) card.classList.add('is-next2');
+            else if (rel === -1) card.classList.add('is-prev');
+            else card.classList.add('is-hidden');
+            card.draggable = rel === 0 && !selectedCards.size;
+        });
+        const toolbarEl = stackEl.parentElement ? stackEl.parentElement.querySelector('.stack-toolbar') : null;
+        if (toolbarEl) {
+            const pagerEl = toolbarEl.querySelector('.stack-pager');
+            if (pagerEl) pagerEl.textContent = cards.length ? ((activeIdx + 1) + ' / ' + cards.length) : '0 / 0';
+            const prevBtn = toolbarEl.querySelector('.stack-nav-btn.prev');
+            const nextBtn = toolbarEl.querySelector('.stack-nav-btn.next');
+            if (prevBtn) prevBtn.disabled = activeIdx <= 0;
+            if (nextBtn) nextBtn.disabled = activeIdx >= cards.length - 1;
+        }
+    }
+
+    function setStackIndex(colId, idx, max) {
+        if (max <= 0) return;
+        idx = Math.max(0, Math.min(idx, max - 1));
+        stackActiveIndex[colId] = idx;
+        persistStackViewState();
+        updateStackVisualState(colId);
+    }
+
+    function stackNav(colId, dir, max) {
+        const cur = stackActiveIndex[colId] || 0;
+        setStackIndex(colId, cur + dir, max);
+    }
+
+    function attachStackSwipe(stackEl, colId, max) {
+        let startY = null, startX = null, dragging = false;
+        stackEl.addEventListener('pointerdown', (e) => {
+            if (e.target.closest('button')) return;
+            startY = e.clientY; startX = e.clientX; dragging = true;
+        });
+        const endDrag = (e) => {
+            if (!dragging || startY === null) return;
+            dragging = false;
+            const dy = e.clientY - startY;
+            const dx = e.clientX - startX;
+            if (Math.abs(dy) > 40 && Math.abs(dy) > Math.abs(dx)) {
+                stackNav(colId, dy < 0 ? 1 : -1, max);
+            }
+            startY = null; startX = null;
+        };
+        stackEl.addEventListener('pointerup', endDrag);
+        stackEl.addEventListener('pointercancel', () => { dragging = false; startY = null; });
+    }
+
     function renderBoard() {
         const container = document.getElementById('view-board');
         if (!container) return;
@@ -4924,12 +5147,14 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <div class="column-count-badge">${directTaskCount}</div>
+                    <button class="stack-toggle-btn ${stackViewCols.has(col.id) ? 'active' : ''}" data-action="toggle-column-stack-mode" data-arg="${col.id}" title="${stackViewCols.has(col.id) ? 'Switch to list view' : 'Switch to stacked card view'}">${stackViewCols.has(col.id) ? '▤ Stack' : '☰ List'}</button>
                     <button class="col-action-btn" data-action="sort-column-by-due-date" data-arg="${col.id}" title="Sort by due date">↕ Due</button>
                     <button class="col-action-btn" data-action="edit-column-details" data-arg="${col.id}" title="Edit List">Edit</button>
                     <button class="col-action-btn delete" data-action="delete-column" data-arg="${col.id}" title="Delete List">&times;</button>
                 </div>`;
+            const isStackMode = stackViewCols.has(col.id);
             const body = document.createElement('div');
-            body.className = 'column-body';
+            body.className = 'column-body' + (isStackMode ? ' stack-mode' : '');
             body.dataset.colId = col.id;
             body.addEventListener('dragover', handleDragOver);
             body.addEventListener('dragleave', handleDragLeave);
@@ -4954,36 +5179,43 @@
                            (t.labels || []).some(l => l.text.toLowerCase().includes(searchQuery));
                 });
             }
+            const stackWrapEl = isStackMode ? document.createElement('div') : null;
+            if (stackWrapEl) {
+                stackWrapEl.className = 'task-stack';
+                stackWrapEl.dataset.colId = col.id;
+            }
             colTasks.forEach(task => {
                 const taskEl = document.createElement('div');
                 let isOverdue = false;
                 let postingHtml = '';
-                
+                let countdownStr = '';
+                let dateStr = '';
+                let timeStr = '';
+
                 if (task.dueDate) {
                     const evDate = new Date(task.dueDate);
                     const now = new Date();
                     const diffMs = evDate - now;
                     const isPast = diffMs < 0;
                     isOverdue = isPast && !task.completed;
-                    
+
                     const absDiff = Math.abs(diffMs);
                     const totalMins = Math.floor(absDiff / 60000);
                     const days = Math.floor(totalMins / 1440);
                     const hrs = Math.floor((totalMins % 1440) / 60);
                     const mins = totalMins % 60;
-                    let countdownStr = '';
                     let countdownColor = '';
-                    
-                    if (isPast) { 
-                        countdownStr = task.completed ? 'Event passed' : '⚠️ Overdue'; 
-                        countdownColor = task.completed ? 'color: #a1a1aa;' : 'color: #FF3B30;'; 
+
+                    if (isPast) {
+                        countdownStr = task.completed ? 'Event passed' : '⚠️ Overdue';
+                        countdownColor = task.completed ? 'color: #a1a1aa;' : 'color: #FF3B30;';
                     }
                     else if (days > 0) { countdownStr = days + 'd ' + hrs + 'h away'; countdownColor = days <= 3 ? 'color: #FF9500;' : 'color: #34C759;'; }
                     else if (hrs > 0) { countdownStr = hrs + 'h ' + mins + 'm away'; countdownColor = 'color: #FF3B30;'; }
                     else { countdownStr = mins + 'm away'; countdownColor = 'color: #FF3B30;'; }
-                    
-                    const dateStr = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(evDate);
-                    const timeStr = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(evDate);
+
+                    dateStr = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(evDate);
+                    timeStr = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(evDate);
                     postingHtml = `<div style="margin-top: 12px; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-size: 0.78rem; color: #fff; font-weight: 700;">📅 ${dateStr} @ ${timeStr}</span>
@@ -4995,7 +5227,7 @@
 
                 if (task._mirrored) taskEl.classList.add('is-mirrored');
                 taskEl.className = 'task-card' + (task.completed ? ' is-complete' : '') + (selectedCards.has(task.id) ? ' selected' : '') + (task._mirrored ? ' is-mirrored' : '') + (isOverdue ? ' is-overdue' : '');
-                taskEl.style.position = 'relative';
+                if (!isStackMode) taskEl.style.position = 'relative';
                 taskEl.draggable = !selectedCards.size;
                 taskEl.id = task.id;
                 let clHtml = '';
@@ -5050,6 +5282,70 @@
                     </div>
                 `;
 
+                if (isStackMode) {
+                    taskEl.className = 'task-card stack-card' + (task.completed ? ' is-complete' : '') + (selectedCards.has(task.id) ? ' selected' : '') + (task._mirrored ? ' is-mirrored' : '') + (isOverdue ? ' is-overdue' : '');
+
+                    let stackLeftBadges = '';
+                    if (task.priority) stackLeftBadges += `<div class="stack-icon-badge" title="Priority: ${escapeHtml(task.priority)}"><span class="priority-dot priority-${task.priority}"></span></div>`;
+                    if (task.attachments && task.attachments.length) stackLeftBadges += `<div class="stack-icon-badge" title="${task.attachments.length} attachment(s)">🔗</div>`;
+                    if (task.checklist && task.checklist.length) stackLeftBadges += `<div class="stack-icon-badge" title="Checklist">☑️</div>`;
+                    if (isCollab) stackLeftBadges += `<div class="stack-icon-badge" title="Collaborative card">✦</div>`;
+
+                    let stackRightBadgeHtml = '';
+                    if (task.completed) stackRightBadgeHtml = '<span class="stack-badge-right done">✓ Done</span>';
+                    else if (isOverdue) stackRightBadgeHtml = '<span class="stack-badge-right overdue">Overdue</span>';
+                    else if (task.dueDate) stackRightBadgeHtml = `<span class="stack-badge-right soon">${escapeHtml(countdownStr.replace('⚠️ ', ''))}</span>`;
+                    else if (task.labels && task.labels.length) stackRightBadgeHtml = `<span class="stack-badge-right">${escapeHtml(task.labels[0].text)}</span>`;
+
+                    const stackCoverInner = task.coverImage
+                        ? `<img src="${task.coverImage}" loading="lazy" alt="" data-error-action="img-retry-once">`
+                        : `<div class="stack-cover-placeholder-icon">🗂️</div>`;
+
+                    const stackSubtitleParts = [];
+                    if (task.dueDate) stackSubtitleParts.push(escapeHtml(dateStr + ' · ' + timeStr));
+                    if (task.eventLocation) stackSubtitleParts.push('📍 ' + escapeHtml(task.eventLocation));
+                    if (task.checklist && task.checklist.length) {
+                        const doneCnt = task.checklist.filter(i => i.done).length;
+                        stackSubtitleParts.push(doneCnt + '/' + task.checklist.length + ' done');
+                    }
+                    if (allMembers.length) stackSubtitleParts.push(allMembers.length + (allMembers.length === 1 ? ' member' : ' members'));
+                    const stackSubtitle = stackSubtitleParts.length ? stackSubtitleParts.join('  ·  ') : escapeHtml(col.title || '');
+
+                    taskEl.innerHTML = `
+                        <div class="stack-cover">
+                            ${stackCoverInner}
+                            <div class="stack-badges-left">${stackLeftBadges}</div>
+                            ${stackRightBadgeHtml}
+                        </div>
+                        <div class="stack-info">
+                            <div class="stack-info-text">
+                                <div class="stack-title">${priorityDotHtml}${escapeHtml(task.title || 'Untitled Task')}</div>
+                                <div class="stack-subtitle">${stackSubtitle}</div>
+                            </div>
+                            <button class="stack-cta ${task.completed ? 'is-done' : ''}" data-action="toggle-complete" data-arg="${task.id}">${task.completed ? '✓ Done' : 'Mark done'}</button>
+                        </div>`;
+                    taskEl.onclick = (e) => {
+                        if (e.target.closest('.stack-cta')) return;
+                        if (!taskEl.classList.contains('is-active')) {
+                            e.preventDefault();
+                            const idx = [...stackWrapEl.children].indexOf(taskEl);
+                            setStackIndex(col.id, idx, colTasks.length);
+                            return;
+                        }
+                        if (e.shiftKey || selectedCards.size > 0) {
+                            e.preventDefault();
+                            if (selectedCards.has(task.id)) { selectedCards.delete(task.id); taskEl.classList.remove('selected'); }
+                            else { selectedCards.add(task.id); taskEl.classList.add('selected'); }
+                            updateBulkBar(); return;
+                        }
+                        openTaskModal(task._mirrorFromCol || col.id, task.id);
+                    };
+                    taskEl.addEventListener('dragstart', handleDragStart);
+                    taskEl.addEventListener('dragend', handleDragEnd);
+                    stackWrapEl.appendChild(taskEl);
+                    return;
+                }
+
                 taskEl.innerHTML = `${coverHtml}${completeBtnHtml}${labelsHtml}<div class="card-title" style="font-weight: 800; font-size: 1rem; margin-bottom: 5px; padding-right: 36px; word-break: break-word;">${priorityDotHtml}${escapeHtml(task.title || 'Untitled Task')}</div>${postingHtml}${clHtml}<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">${orderBtnsHtml}<div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">${attachmentBadge}${membersHtml}</div></div>`;
                 taskEl.onclick = (e) => {
                     if (e.target.classList.contains('complete-btn')) return;
@@ -5065,6 +5361,19 @@
                 taskEl.addEventListener('dragend', handleDragEnd);
                 body.appendChild(taskEl);
             });
+            if (isStackMode) {
+                const toolbar = document.createElement('div');
+                toolbar.className = 'stack-toolbar';
+                toolbar.innerHTML = `
+                    <span class="stack-pager">${colTasks.length ? '1 / ' + colTasks.length : '0 / 0'}</span>
+                    <div class="stack-nav-btns">
+                        <button class="stack-nav-btn prev" data-action="stack-nav-prev" data-arg="${col.id}" data-max="${colTasks.length}" title="Previous card">▲</button>
+                        <button class="stack-nav-btn next" data-action="stack-nav-next" data-arg="${col.id}" data-max="${colTasks.length}" title="Next card">▼</button>
+                    </div>`;
+                body.appendChild(toolbar);
+                body.appendChild(stackWrapEl);
+                attachStackSwipe(stackWrapEl, col.id, colTasks.length);
+            }
             const addBtn = document.createElement('button');
             addBtn.className = 'add-task-btn';
             addBtn.innerHTML = '+ Add Task';
@@ -5073,6 +5382,7 @@
             colEl.appendChild(header);
             colEl.appendChild(body);
             container.appendChild(colEl);
+            if (isStackMode) updateStackVisualState(col.id);
         });
         const addColBtn = document.createElement('div');
         addColBtn.className = 'add-col-btn';
@@ -11852,6 +12162,9 @@
             case 'toggle-complete': toggleComplete(el.dataset.arg, e); break;
             case 'move-task-up': moveTaskUp(el.dataset.arg, e); break;
             case 'move-task-down': moveTaskDown(el.dataset.arg, e); break;
+            case 'toggle-column-stack-mode': toggleColumnStackMode(el.dataset.arg); break;
+            case 'stack-nav-prev': stackNav(el.dataset.arg, -1, parseInt(el.dataset.max, 10) || 0); break;
+            case 'stack-nav-next': stackNav(el.dataset.arg, 1, parseInt(el.dataset.max, 10) || 0); break;
             case 'set-calendar-type': setCalendarType(el.dataset.arg); break;
             case 'change-month-neg1': changeMonth(-1); break;
             case 'change-month-1': changeMonth(1); break;
