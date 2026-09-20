@@ -107,8 +107,8 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
             background-color: #000000;
             background-image:
-                radial-gradient(circle at 15% 0%, rgba(124, 58, 237, 0.16) 0%, transparent 55%),
-                radial-gradient(circle at 100% 100%, rgba(59, 78, 216, 0.12) 0%, transparent 55%);
+                radial-gradient(circle at 15% 0%, rgba(21, 128, 61, 0.16) 0%, transparent 55%),
+                radial-gradient(circle at 100% 100%, rgba(21, 128, 61, 0.1) 0%, transparent 55%);
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -237,11 +237,22 @@
         }
 
         .app-container {
+            position: relative;
             width: 100%;
             height: 100dvh;
             padding: 0 40px;
             display: flex;
             flex-direction: column;
+        }
+
+        .board-glow-accent {
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 260px;
+            background: rgba(21,128,61,.14);
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: -1;
+            border-radius: 0 0 999px 999px;
         }
 
         .topbar {
@@ -260,31 +271,63 @@
         }
 
         .brand { display: flex; align-items: center; gap: 16px; }
-        .brand-text {
-            display: flex; align-items: center; gap: 10px;
-        }
-        .brand-text::before {
-            content: "CAB";
+
+        .brand-icon-box {
             display: flex; align-items: center; justify-content: center;
-            width: 30px; height: 30px; flex-shrink: 0;
-            border-radius: 50%;
+            width: 44px; height: 44px; flex-shrink: 0;
+            border-radius: 12px;
             background: var(--surface-3);
             border: 1px solid var(--border-default);
-            font-size: 7px; font-weight: 800; letter-spacing: 1px;
-            color: #fff;
             box-shadow: 0 4px 12px rgba(0,0,0,.4);
+            cursor: pointer;
         }
-        .brand-text h1 {
-            font-size: 1.3rem; font-weight: 700; margin: 0;
+        #brand-icon-fallback {
+            color: #22c55e;
+            font-weight: 900; font-size: 0.8rem; letter-spacing: -0.02em;
+        }
+
+        .brand-text-group { display: flex; align-items: center; gap: 12px; }
+        .brand-text-group h1 {
+            font-size: 1.5rem; font-weight: 700; margin: 0;
             color: #ffffff;
             line-height: 1.2;
             letter-spacing: -0.01em;
+            cursor: pointer;
         }
+
+        .workspace-select-btn {
+            appearance: none; -webkit-appearance: none;
+            background: var(--surface-3); border: 1px solid var(--border-default);
+            color: #4ade80; border-radius: 12px; padding: 10px 14px;
+            font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+            font-family: inherit; transition: 0.2s; white-space: nowrap;
+        }
+        .workspace-select-btn:hover { border-color: rgba(34,197,94,.4); }
+        .workspace-select-btn svg { width: 14px; height: 14px; color: var(--text-faint); flex-shrink: 0; }
 
         .event-subtext { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px; margin-top: 4px; }
         .board-assignee { background: var(--gradient-accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 0.9rem; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; display: none; }
-        
+
         .controls { display: flex; gap: 10px; align-items: center; }
+
+        .header-icon-btn {
+            position: relative;
+            width: 44px; height: 44px; flex-shrink: 0;
+            border-radius: 12px;
+            background: var(--surface-3);
+            border: 1px solid var(--border-default);
+            color: var(--text-muted);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        .header-icon-btn:hover { border-color: rgba(34,197,94,.4); color: #fff; }
+        .header-icon-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+        .header-icon-btn-labeled {
+            width: auto; height: auto; padding: 11px 16px; gap: 8px;
+            color: #e5e7eb; font-size: 0.85rem; font-weight: 600; white-space: nowrap;
+        }
+        .header-icon-btn-labeled svg { width: 16px; height: 16px; }
 
         .nav-tabs {
             position: fixed;
@@ -426,6 +469,35 @@
         .board-container::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; border: 2px solid #050505; }
         .board-container::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
 
+        .board-container.list-mode {
+            flex-wrap: wrap;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .board-container.list-mode .kanban-column {
+            min-width: 280px;
+            width: calc(25% - 18px);
+            max-height: 520px;
+        }
+        @media (max-width: 1200px) {
+            .board-container.list-mode .kanban-column { width: calc(50% - 12px); }
+        }
+        @media (max-width: 700px) {
+            .board-container.list-mode .kanban-column { width: 100%; }
+        }
+
+        .board-view-toggle-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-shrink: 0; }
+        .board-view-toggle-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 999px;
+            background: var(--surface-3); border: 1px solid var(--border-default);
+            color: var(--text-muted); font-size: 0.72rem; font-weight: 700;
+            cursor: pointer; transition: 0.2s; white-space: nowrap;
+        }
+        .board-view-toggle-btn svg { width: 14px; height: 14px; }
+        .board-view-toggle-btn:hover { background: var(--surface-2-hover); color: #fff; }
+        .board-view-toggle-btn.active { background: #fff; color: #000; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+
         .kanban-column {
             background: transparent;
             border: none;
@@ -440,22 +512,32 @@
         }
 
         .column-header {
-            padding: 4px 4px 14px 4px;
-            font-weight: 700;
+            padding: 0 4px 16px 4px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .column-header-left { display: flex; align-items: center; gap: 8px; }
+
+        .column-role-title {
             color: #fff;
-            font-size: 1.1rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            line-height: 1.2;
+            margin: 0;
         }
 
         .column-assignee {
             color: var(--accent-blue);
             font-weight: 800;
-            font-size: 0.68rem;
-            margin-top: 3px;
+            font-size: 0.62rem;
+            margin: 1px 0 0;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.05em;
         }
 
         .column-dot {
@@ -466,12 +548,12 @@
         }
 
         .column-count-badge {
-            padding: 3px 10px;
+            padding: 2px 8px;
             border-radius: 999px;
-            background: var(--surface-3);
-            border: 1px solid var(--border-default);
-            color: #d4d4d8;
-            font-size: 0.68rem;
+            background: rgba(31,41,55,.8);
+            border: 1px solid rgba(55,65,81,.5);
+            color: var(--text-muted);
+            font-size: 0.62rem;
             font-weight: 700;
             flex-shrink: 0;
         }
@@ -482,6 +564,39 @@
         .col-action-btn:hover { background: var(--surface-2-hover); border-color: var(--border-strong); color: #fff; }
         .col-action-btn.delete { background: transparent; border: none; font-size: 1.2rem; padding: 0 4px; text-transform: none; }
         .col-action-btn.delete:hover { color: #ef4444; background: transparent; border-color: transparent; }
+
+        .task-order-btn {
+            background: rgba(31,41,55,.8); border: none; color: var(--text-muted);
+            cursor: pointer; font-size: 0.55rem; transition: 0.2s;
+            padding: 4px 8px; border-radius: 999px; line-height: 1;
+        }
+        .task-order-btn:hover { background: rgba(55,65,81,.95); color: #fff; }
+
+        .column-actions-btn {
+            width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+            background: rgba(31,41,55,.5); border: none; color: var(--text-muted);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        .column-actions-btn:hover { background: rgba(55,65,81,.9); color: #fff; }
+        .column-actions-btn svg { width: 16px; height: 16px; }
+
+        .col-actions-dropdown {
+            display: none;
+            position: fixed;
+            width: 210px;
+            background: rgba(17,17,17,.97);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            box-shadow: 0 20px 50px rgba(0,0,0,.6);
+            z-index: 500;
+            padding: 6px;
+            flex-direction: column;
+        }
+        .col-actions-dropdown.open { display: flex; }
+        .col-actions-dropdown .task-option-btn.danger { color: #f87171; }
+        .col-actions-dropdown .task-option-btn.danger:hover { background: rgba(239,68,68,.12); }
+        .col-actions-members { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 4px 8px 8px; }
 
         .column-body {
             padding: 0 4px 16px 4px;
@@ -505,7 +620,7 @@
         .task-card {
             background: var(--surface-2);
             border: 1px solid var(--border-subtle);
-            border-radius: 1.25rem;
+            border-radius: 0.75rem;
             padding: 16px;
             cursor: grab;
             transition: all 0.25s ease;
@@ -533,14 +648,14 @@
 
         .add-task-btn {
             background: transparent; border: 1px dashed var(--border-strong); color: var(--text-muted);
-            padding: 12px; border-radius: 1.25rem; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; text-align: center; margin-top: auto;
+            padding: 12px; border-radius: 0.75rem; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; text-align: center; margin-top: auto;
         }
         .add-task-btn:hover { background: var(--surface-2); color: #fff; border-color: var(--accent-purple-light); }
 
         .add-col-btn {
             background: transparent;
             border: 1px dashed var(--border-strong);
-            border-radius: 1.25rem;
+            border-radius: 0.75rem;
             min-width: 340px;
             display: flex;
             align-items: center; justify-content: center;
@@ -1032,23 +1147,22 @@
         .label-tag.green { background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.35); }
         .label-tag.orange { background: rgba(249, 115, 22, 0.15); color: #fb923c; border-color: rgba(249, 115, 22, 0.35); }
         .label-tag.lime { background: rgba(163, 230, 53, 0.15); color: #bef264; border-color: rgba(163, 230, 53, 0.35); }
+        .label-tag.gray { background: rgba(107, 114, 128, 0.35); color: #d1d5db; border-color: rgba(107, 114, 128, 0.5); }
 
-        .card-cover {
-            width: calc(100% + 32px);
-            margin: -16px -16px 14px -16px;
-            height: 128px;
-            border-radius: 1.25rem 1.25rem 0 0;
-            border-bottom: 1px solid var(--border-subtle);
-            overflow: hidden;
-            position: relative;
+        /* Card with a cover image: left thumbnail + content beside it, matching the reference card */
+        .task-card.has-cover { display: flex; gap: 16px; padding: 12px; overflow: hidden; }
+        .card-blur-accent {
+            position: absolute; top: -40px; right: -40px;
+            width: 128px; height: 128px; border-radius: 50%;
+            filter: blur(48px); pointer-events: none; z-index: 0;
         }
-        .card-cover img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            display: block;
+        .card-thumb {
+            width: 96px; height: 96px; flex-shrink: 0;
+            border-radius: 0.75rem; overflow: hidden;
+            background: var(--surface-3); position: relative; z-index: 1;
         }
+        .card-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+        .card-body-flex { display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; position: relative; z-index: 1; padding: 4px 0; }
 
         /* Task modal: centered phone-card shell at every breakpoint (see reference card style) */
         #taskModal .modal-content {
@@ -1335,8 +1449,6 @@
         input:checked + .slider:before { transform: translateX(20px); }
 
         /* Notification System */
-        .notif-bell { position: relative; background: var(--surface-3); border: 1px solid var(--border-default); border-radius: 100px; padding: 8px 12px; font-size: 1.1rem; cursor: pointer; color: #ddd; transition: all 0.2s; }
-        .notif-bell:hover { background: var(--surface-2-hover); border-color: var(--border-strong); }
         .notif-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; font-size: 0.65rem; font-weight: 800; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px; border: 2px solid rgba(15,15,15,0.9); }
         .notif-tab-bell { display: none; position: relative; padding: 0; width: 48px; height: 48px; margin: 0 4px; }
         .notif-panel { position: fixed; top: 0; right: -400px; width: 380px; max-width: 92vw; height: 100vh;
@@ -1458,28 +1570,33 @@
         .member-chip button { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.9rem; padding: 0; line-height: 1; }
 
         /* SEARCH */
-        .search-wrap { position: relative; }
+        .search-wrap { position: relative; flex: 1; max-width: 310px; }
         .search-input {
+            width: 100%;
             background: var(--surface-3);
             border: 1px solid var(--border-default);
-            color: #fff; padding: 9px 16px 9px 38px;
-            border-radius: 100px; font-size: 0.88rem;
+            color: #fff; padding: 12px 16px 12px 44px;
+            border-radius: 12px; font-size: 0.875rem;
             outline: none; font-family: inherit;
-            width: 220px; transition: 0.2s;
+            transition: 0.2s;
         }
-        .search-input:focus { border-color: var(--accent-purple-light); background: var(--surface-2-hover); width: 280px; box-shadow: 0 0 0 4px var(--accent-purple-soft-bg); }
+        .search-input:focus { border-color: rgba(34,197,94,.5); background: var(--surface-2-hover); box-shadow: 0 0 0 3px rgba(34,197,94,.1); }
         .search-input::placeholder { color: var(--text-muted); }
-        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; pointer-events: none; }
+        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; display: flex; }
+        .search-icon svg { width: 16px; height: 16px; }
 
         /* PRIORITY */
-        .card-meta-line { margin-top: 4px; font-size: 0.72rem; color: var(--text-muted); font-weight: 500; }
+        .card-title { font-weight: 700; font-size: 0.9375rem; margin: 0 0 4px; padding-right: 36px; line-height: 1.3; word-break: break-word; }
+        .card-label-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+        .card-meta-line { margin: 0 0 12px; font-size: 0.6875rem; color: var(--text-muted); font-weight: 500; }
+        .card-attach-badge { font-size: 0.68rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; }
+        .card-bottom-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; gap: 8px; }
+        .card-bottom-row-right { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-left: auto; }
         .countdown-pill {
             padding: 3px 10px;
             border-radius: 999px;
-            font-size: 0.6rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
+            font-size: 0.5625rem;
+            font-weight: 700;
             border: 1px solid;
             white-space: nowrap;
             flex-shrink: 0;
@@ -1503,11 +1620,12 @@
         .collab-avatars .avatar:first-child { margin-left: 0; }
         .collab-avatars .avatar:hover { transform: translateY(-3px); z-index: 2; }
         .collab-badge {
-            font-size: 0.65rem; font-weight: 800; color: #c084fc;
-            background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.3);
-            border-radius: 999px; padding: 2px 7px; margin-right: 6px;
-            letter-spacing: 0.3px;
+            font-size: 0.5625rem; font-weight: 700; color: #c084fc;
+            background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.2);
+            border-radius: 999px; padding: 3px 9px; margin-right: 6px;
         }
+
+        .card-label-row .label-tag { font-size: 0.5625rem; padding: 3px 8px; font-weight: 700; }
 
         .complete-btn {
             position: absolute; top: 10px; right: 10px;
@@ -1739,9 +1857,9 @@
         @media (min-width: 1400px) {
             .kanban-column, .add-col-btn { min-width: 368px; width: 368px; }
             .board-container { gap: 28px; }
-            .brand-text h1 { font-size: 1.45rem; }
+            .brand-text-group h1 { font-size: 1.65rem; }
             .task-card { padding: 18px; }
-            .task-card .card-cover { width: calc(100% + 36px); margin: -18px -18px 14px -18px; }
+            .task-card.has-cover { padding: 14px; }
         }
         /* @mention autocomplete dropdown */
         .mention-dropdown {
@@ -1874,6 +1992,16 @@
 <div class="mention-dropdown" id="mentionDropdown"></div>
 <div id="bg-container"></div>
 <div id="toast">Notification</div>
+
+<!-- Shared column actions dropdown (positioned per-column on open) -->
+<div id="colActionsDropdown" class="col-actions-dropdown">
+    <button type="button" class="task-option-btn" data-action="open-task-modal" onclick="closeColumnActionsMenu()">+ Add Task</button>
+    <button type="button" class="task-option-btn" data-action="sort-column-by-due-date" onclick="closeColumnActionsMenu()">↕ Sort by Due Date</button>
+    <button type="button" class="task-option-btn" data-action="edit-column-details" onclick="closeColumnActionsMenu()">Edit List</button>
+    <button type="button" class="task-option-btn danger" data-action="delete-column" onclick="closeColumnActionsMenu()">Delete List</button>
+    <span class="task-options-label" style="padding-top:8px;">Members</span>
+    <div id="colActionsMembers" class="col-actions-members"></div>
+</div>
 
 <!-- Notification Panel -->
 <div class="notif-overlay" id="notifOverlay" data-action="toggle-notif-panel"></div>
@@ -2040,30 +2168,37 @@
 </div>
 
 <div class="app-container">
+    <div class="board-glow-accent"></div>
     <div class="frosted topbar">
         <div class="brand">
-            <div class="brand-text" data-action="switch-view" data-arg="board" style="cursor: pointer; display: flex; align-items: center; gap: 12px;" title="Return to Board">
-                <img id="brand-logo" src="" style="height: 36px; width: auto; display: none; border-radius: 6px;" alt="Logo">
-                <h1>CAB Marketing</h1>
+            <div class="brand-icon-box" data-action="switch-view" data-arg="board" title="Return to Board">
+                <img id="brand-logo" src="" style="height: 26px; width: auto; display: none; border-radius: 6px;" alt="Logo">
+                <span id="brand-icon-fallback">CAB</span>
             </div>
-            <button id="workspacePill" data-action="open-modal" data-arg="workspaceModal" style="
-                background: var(--accent-blue-soft-bg); border: 1px solid var(--accent-blue-soft-border);
-                color: var(--accent-blue); border-radius: 100px; padding: 6px 14px;
-                font-size: 0.82rem; font-weight: 800; cursor: pointer;
-                display: flex; align-items: center; gap: 6px;
-                font-family: inherit; transition: 0.2s; white-space: nowrap;
-            " data-hover-style="background:rgba(59,130,246,0.22)" data-normal-style="background:rgba(59,130,246,0.12)">
-                <span id="workspacePillText">Loading...</span> <span style="font-size:0.7rem; opacity:0.7;">▾</span>
-            </button>
+            <div class="brand-text-group">
+                <h1 data-action="switch-view" data-arg="board" title="Return to Board">CAB Marketing</h1>
+                <button id="workspacePill" class="workspace-select-btn" data-action="open-modal" data-arg="workspaceModal">
+                    <span id="workspacePillText">Loading...</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+            </div>
         </div>
         <div class="controls">
             <div class="search-wrap">
-                <span class="search-icon">🔍</span>
+                <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></span>
                 <input type="text" class="search-input" id="globalSearch" placeholder="Search cards..." data-input-action="handle-search" autocomplete="off">
             </div>
-            <button data-action="open-modal" data-arg="automationsModal" class="btn-outline" style="background: var(--accent-purple-soft-bg); border-color: var(--accent-purple-soft-border); color: var(--accent-purple-light); font-weight: 700;">✨ Automations</button>
-            <button class="notif-bell" data-action="toggle-notif-panel" id="notifBellBtn">🔔<span class="notif-badge" id="notifBadge" style="display:none;">0</span></button>
-            <button data-action="switch-view" data-arg="settings" class="btn-outline">Settings</button>
+            <button data-action="open-modal" data-arg="automationsModal" class="header-icon-btn header-icon-btn-labeled">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:#4ade80;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l1.2 4.8L18 9l-4.8 1.2L12 15l-1.2-4.8L6 9l4.8-1.2L12 3zM19 15l.6 2.4L22 18l-2.4.6L19 21l-.6-2.4L16 18l2.4-.6L19 15z"/></svg>
+                <span>Automations</span>
+            </button>
+            <button class="header-icon-btn notif-bell" data-action="toggle-notif-panel" id="notifBellBtn" aria-label="Notifications">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9a6 6 0 10-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+                <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+            </button>
+            <button data-action="switch-view" data-arg="settings" class="header-icon-btn" aria-label="Settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zm8 3.5l-2.1-.8a6.2 6.2 0 00-.6-1.5l.9-2-1.9-1.9-2 .9a6.2 6.2 0 00-1.5-.6L12 4h-.1l-.8 2.1a6.2 6.2 0 00-1.5.6l-2-.9-1.9 1.9.9 2a6.2 6.2 0 00-.6 1.5L4 12v2l2.1.8c.2.5.4 1 .6 1.5l-.9 2 1.9 1.9 2-.9c.5.2 1 .4 1.5.6L12 22l.1-.1.8-2.1c.5-.1 1-.4 1.5-.6l2 .9 1.9-1.9-.9-2c.2-.5.4-1 .6-1.5L20 14v-2z"/></svg>
+            </button>
         </div>
     </div>
 
@@ -2112,6 +2247,16 @@
         </button>
     </div>
 
+    <div class="board-view-toggle-bar" id="boardViewToggleBar">
+        <button type="button" id="boardViewBtnBoard" class="board-view-toggle-btn active" data-action="set-board-display-mode" data-arg="board">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
+            Board
+        </button>
+        <button type="button" id="boardViewBtnList" class="board-view-toggle-btn" data-action="set-board-display-mode" data-arg="list">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            List
+        </button>
+    </div>
     <div class="app-view active board-container" id="view-board"></div>
     <div class="app-view" id="view-calendar"><div class="calendar-wrapper" id="calendar-main-wrapper"></div></div>
     <div class="app-view" id="view-duesoon" style="padding: 0 4px;">
@@ -4130,11 +4275,26 @@
         if (topbar) {
             topbar.style.display = viewName === 'calendar' ? 'none' : 'flex';
         }
+        const boardViewToggleBar = document.getElementById('boardViewToggleBar');
+        if (boardViewToggleBar) {
+            boardViewToggleBar.style.display = viewName === 'board' ? 'flex' : 'none';
+        }
 
         if (viewName === 'board') renderBoard();
         if (viewName === 'calendar') renderCalendar();
         if (viewName === 'settings') { renderSettings(); renderUserProfile(); }
         if (viewName === 'duesoon') renderDueSoon();
+    }
+
+    function setBoardDisplayMode(mode) {
+        const container = document.getElementById('view-board');
+        if (!container) return;
+        if (mode === 'list') container.classList.add('list-mode');
+        else container.classList.remove('list-mode');
+        const boardBtn = document.getElementById('boardViewBtnBoard');
+        const listBtn = document.getElementById('boardViewBtnList');
+        if (boardBtn) boardBtn.classList.toggle('active', mode !== 'list');
+        if (listBtn) listBtn.classList.toggle('active', mode === 'list');
     }
 
     let searchQuery = '';
@@ -4248,7 +4408,7 @@
         if (activeBoard && activeBoard.backgroundImage) {
             bgContainer.style.backgroundImage = `linear-gradient(rgba(5, 5, 5, 0.3), rgba(5, 5, 5, 0.5)), url('${activeBoard.backgroundImage}')`;
         } else {
-            bgContainer.style.backgroundImage = `radial-gradient(circle at 5% 5%, rgba(59, 130, 246, 0.12) 0%, transparent 45%), radial-gradient(circle at 95% 95%, rgba(168, 85, 247, 0.12) 0%, transparent 45%)`;
+            bgContainer.style.backgroundImage = `radial-gradient(circle at 5% 5%, rgba(21, 128, 61, 0.14) 0%, transparent 45%), radial-gradient(circle at 95% 95%, rgba(21, 128, 61, 0.1) 0%, transparent 45%)`;
         }
     }
 
@@ -4949,29 +5109,21 @@
             colEl.className = 'kanban-column';
             const header = document.createElement('div');
             header.className = 'column-header';
-            const colMembers = col.members || [];
             const directTaskCount = appData.tasks.filter(t => t.columnId === col.id).length;
             const dotColor = columnDotColors[colIdx % columnDotColors.length];
-            const memberAvatars = colMembers.map((m, i) => {
-                return `<div class="avatar" style="width:22px;height:22px;font-size:0.55rem;border:2px solid #111;margin-left:${i===0?'0':'2px'};cursor:pointer;" title="Remove ${escapeHtml(m)}" data-action="remove-column-member" data-col-id="${col.id}" data-member="${escapeHtml(m)}">${getAvatarContent(m)}</div>`;
-            }).join('');
-            const memberBar = `<div style="display:flex;align-items:center;margin-top:5px;">${memberAvatars}<button data-action="add-column-member" data-arg="${col.id}" style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.07);border:1.5px dashed rgba(255,255,255,0.2);color:var(--text-muted);font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-left:${colMembers.length?'2px':'0'};flex-shrink:0;transition:0.2s;" data-hover-style="background:rgba(59,130,246,0.2);border-color:#3b82f6;color:#3b82f6" data-normal-style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);color:var(--text-muted)" title="Add member">+</button></div>`;
-            let assignedHtml = col.assignedTo ? `<div class="column-assignee">${escapeHtml(col.assignedTo)}</div>` : '';
+            const assigneeHtml = col.assignedTo ? `<p class="column-assignee" style="color:${dotColor};">${escapeHtml(col.assignedTo)}</p>` : '';
             header.innerHTML = `
-                <div style="display: flex; flex-direction: column; flex-grow: 1; padding-right: 10px; align-items: flex-start;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span class="column-dot" style="background:${dotColor}; box-shadow:0 0 8px ${dotColor}80;"></span>
-                        <span style="line-height: 1.2;">${escapeHtml(col.title)}</span>
+                <div class="column-header-left">
+                    <span class="column-dot" style="background:${dotColor}; box-shadow:0 0 8px ${dotColor}80;"></span>
+                    <div>
+                        <h2 class="column-role-title">${escapeHtml(col.title)}</h2>
+                        ${assigneeHtml}
                     </div>
-                    ${assignedHtml}
-                    ${memberBar}
+                    <span class="column-count-badge">${directTaskCount}</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <div class="column-count-badge">${directTaskCount}</div>
-                    <button class="col-action-btn" data-action="sort-column-by-due-date" data-arg="${col.id}" title="Sort by due date">↕ Due</button>
-                    <button class="col-action-btn" data-action="edit-column-details" data-arg="${col.id}" title="Edit List">Edit</button>
-                    <button class="col-action-btn delete" data-action="delete-column" data-arg="${col.id}" title="Delete List">&times;</button>
-                </div>`;
+                <button type="button" class="column-actions-btn" onclick="toggleColumnActionsMenu(event, '${col.id}')" title="List options">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </button>`;
             const body = document.createElement('div');
             body.className = 'column-body';
             body.dataset.colId = col.id;
@@ -4998,6 +5150,7 @@
                            (t.labels || []).some(l => l.text.toLowerCase().includes(searchQuery));
                 });
             }
+            const cardAccentColors = ['rgba(34,197,94,.18)', 'rgba(234,179,8,.18)', 'rgba(168,85,247,.18)', 'rgba(59,130,246,.18)'];
             colTasks.forEach(task => {
                 const taskEl = document.createElement('div');
                 let isOverdue = false;
@@ -5020,7 +5173,7 @@
                     let pillBg, pillColor, pillBorder;
 
                     if (isPast) {
-                        countdownStr = task.completed ? 'Event passed' : '⚠️ Overdue';
+                        countdownStr = task.completed ? 'Event passed' : 'Overdue';
                         if (task.completed) { pillBg = 'rgba(161,161,170,.12)'; pillColor = '#a1a1aa'; pillBorder = 'rgba(161,161,170,.3)'; }
                         else { pillBg = 'rgba(239,68,68,.12)'; pillColor = '#ef4444'; pillBorder = 'rgba(239,68,68,.3)'; }
                     }
@@ -5032,14 +5185,14 @@
                     else if (hrs > 0) { countdownStr = hrs + 'h ' + mins + 'm away'; pillBg = 'rgba(239,68,68,.12)'; pillColor = '#ef4444'; pillBorder = 'rgba(239,68,68,.3)'; }
                     else { countdownStr = mins + 'm away'; pillBg = 'rgba(239,68,68,.12)'; pillColor = '#ef4444'; pillBorder = 'rgba(239,68,68,.3)'; }
 
-                    const dateStr = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(evDate);
-                    const timeStr = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(evDate);
-                    postingHtml = `<div class="card-meta-line">📅 ${dateStr} &bull; ${timeStr}${task.eventLocation ? ' &bull; ' + escapeHtml(task.eventLocation) : ''}</div>`;
-                    countdownPillHtml = `<span class="countdown-pill" style="background:${pillBg}; color:${pillColor}; border-color:${pillBorder};">${countdownStr}</span>`;
+                    const dateStr = new Intl.DateTimeFormat('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }).format(evDate);
+                    postingHtml = `<p class="card-meta-line">${dateStr}${task.eventLocation ? ' &bull; ' + escapeHtml(task.eventLocation) : ''}</p>`;
+                    countdownPillHtml = `<span class="countdown-pill" style="background:${pillBg}; color:${pillColor}; border-color:${pillBorder}; text-transform:uppercase; letter-spacing:0.03em;">${countdownStr}</span>`;
                 }
 
                 if (task._mirrored) taskEl.classList.add('is-mirrored');
-                taskEl.className = 'task-card' + (task.completed ? ' is-complete' : '') + (selectedCards.has(task.id) ? ' selected' : '') + (task._mirrored ? ' is-mirrored' : '') + (isOverdue ? ' is-overdue' : '');
+                const hasCover = !!task.coverImage;
+                taskEl.className = 'task-card' + (hasCover ? ' has-cover' : '') + (task.completed ? ' is-complete' : '') + (selectedCards.has(task.id) ? ' selected' : '') + (task._mirrored ? ' is-mirrored' : '') + (isOverdue ? ' is-overdue' : '');
                 taskEl.style.position = 'relative';
                 taskEl.draggable = !selectedCards.size;
                 taskEl.id = task.id;
@@ -5047,25 +5200,26 @@
                 if(task.checklist && task.checklist.length > 0) {
                     const doneCnt = task.checklist.filter(i => i.done).length;
                     const total = task.checklist.length;
-                    const clColor = doneCnt === total ? '#22c55e' : 'var(--text-muted)';
-                    clHtml = `<div style="margin-top: 12px; font-size: 0.8rem; color: ${clColor}; font-weight: 700; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 100px; width: fit-content;">☑️ ${doneCnt}/${total} Complete</div>`;
+                    const clDone = doneCnt === total;
+                    const clStyle = clDone ? 'background:rgba(34,197,94,.1); color:#4ade80; border-color:rgba(34,197,94,.25);' : 'background:rgba(107,114,128,.15); color:var(--text-muted); border-color:rgba(107,114,128,.3);';
+                    clHtml = `<span class="countdown-pill" style="${clStyle} margin-top:8px; display:inline-block;">${doneCnt}/${total} Complete</span>`;
                 }
                 let labelsHtml = '';
                 if(task.labels && task.labels.length > 0) {
-                    labelsHtml = `<div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">${task.labels.map(l => `<span class="label-tag ${l.color}" style="font-size: 0.65rem; padding: 2px 6px;">${escapeHtml(l.text)}</span>`).join('')}</div>`;
+                    labelsHtml = `<div class="card-label-row">${task.labels.map(l => `<span class="label-tag ${l.color}">${escapeHtml(l.text)}</span>`).join('')}</div>`;
                 }
                 const colMembersList = col.members || [];
                 const taskMembersList = task.members || [];
                 const allMembersSet = new Set([...colMembersList, ...taskMembersList]);
                 const allMembers = [...allMembersSet];
-                
+
                 // Check if this specific task is being mirrored to any other column
-                const isMirroredElsewhere = appData.columns.some(c => 
-                    c.id !== task.columnId && 
-                    c.boardId === task.boardId && 
+                const isMirroredElsewhere = appData.columns.some(c =>
+                    c.id !== task.columnId &&
+                    c.boardId === task.boardId &&
                     (c.members || []).some(m => taskMembersList.includes(m))
                 );
-                
+
                 const isCollab = allMembers.length > 1 || task._mirrored || isMirroredElsewhere;
                 if (isCollab) taskEl.classList.add('is-collab');
                 let membersHtml = '';
@@ -5080,22 +5234,38 @@
                     }).join('');
                     membersHtml = collabBadge + '<div class="collab-avatars">' + avatars + '</div>';
                 }
-                let coverHtml = '';
-                if(task.coverImage) { coverHtml = `<div class="card-cover"><img src="${task.coverImage}" loading="lazy" alt="" data-error-action="img-retry-once"></div>`; }
                 let attachmentBadge = '';
-                if(task.attachments && task.attachments.length > 0) { attachmentBadge = `<span style="font-size: 0.75rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; margin-left: 10px;">🔗 ${task.attachments.length}</span>`; }
+                if(task.attachments && task.attachments.length > 0) { attachmentBadge = `<span class="card-attach-badge">🔗 ${task.attachments.length}</span>`; }
 
                 const priorityDotHtml = task.priority ? `<span class="priority-dot priority-${task.priority}" style="margin-right:6px; vertical-align:middle;"></span>` : '';
                 const completeBtnHtml = `<button class="complete-btn" data-action="toggle-complete" data-arg="${task.id}" title="${task.completed ? 'Mark incomplete' : 'Mark complete'}">${task.completed ? '✓' : '○'}</button>`;
-                
+
                 const orderBtnsHtml = task._mirrored ? '' : `
                     <div style="display:flex; gap: 4px;">
-                        <button class="col-action-btn" style="padding: 2px 6px; font-size: 0.6rem;" data-action="move-task-up" data-arg="${task.id}" title="Move Up">▲</button>
-                        <button class="col-action-btn" style="padding: 2px 6px; font-size: 0.6rem;" data-action="move-task-down" data-arg="${task.id}" title="Move Down">▼</button>
+                        <button class="task-order-btn" data-action="move-task-up" data-arg="${task.id}" title="Move Up">▲</button>
+                        <button class="task-order-btn" data-action="move-task-down" data-arg="${task.id}" title="Move Down">▼</button>
                     </div>
                 `;
 
-                taskEl.innerHTML = `${coverHtml}${completeBtnHtml}${labelsHtml}<div class="card-title" style="font-weight: 800; font-size: 1rem; margin-bottom: 5px; padding-right: 36px; word-break: break-word;">${priorityDotHtml}${escapeHtml(task.title || 'Untitled Task')}</div>${postingHtml}${clHtml}<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">${orderBtnsHtml}<div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">${attachmentBadge}${membersHtml}${countdownPillHtml}</div></div>`;
+                const titleHtml = `<h3 class="card-title">${priorityDotHtml}${escapeHtml(task.title || 'Untitled Task')}</h3>`;
+                const bottomRowHtml = `<div class="card-bottom-row">${orderBtnsHtml}<div class="card-bottom-row-right">${attachmentBadge}${membersHtml}${countdownPillHtml}</div></div>`;
+
+                if (hasCover) {
+                    const accentColor = cardAccentColors[colIdx % cardAccentColors.length];
+                    taskEl.innerHTML = `
+                        <div class="card-blur-accent" style="background:${accentColor};"></div>
+                        ${completeBtnHtml}
+                        <div class="card-thumb"><img src="${task.coverImage}" loading="lazy" alt="" data-error-action="img-retry-once"></div>
+                        <div class="card-body-flex">
+                            ${labelsHtml}
+                            ${titleHtml}
+                            ${postingHtml}
+                            ${clHtml}
+                            <div class="card-bottom-row" style="margin-top:auto;">${orderBtnsHtml}<div class="card-bottom-row-right">${attachmentBadge}${membersHtml}${countdownPillHtml}</div></div>
+                        </div>`;
+                } else {
+                    taskEl.innerHTML = `${completeBtnHtml}${labelsHtml}${titleHtml}${postingHtml}${clHtml}${bottomRowHtml}`;
+                }
                 taskEl.onclick = (e) => {
                     if (e.target.classList.contains('complete-btn')) return;
                     if (e.shiftKey || selectedCards.size > 0) {
@@ -8623,6 +8793,49 @@
         if (!event.target.closest('.task-options-wrap')) closeTaskOptionsMenu();
     }, true);
 
+    function toggleColumnActionsMenu(event, colId) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('colActionsDropdown');
+        if (!dropdown) return;
+        const alreadyOpenForThis = dropdown.classList.contains('open') && dropdown.dataset.colId === colId;
+        dropdown.querySelectorAll('[data-action="sort-column-by-due-date"], [data-action="edit-column-details"], [data-action="delete-column"]').forEach(b => b.dataset.arg = colId);
+        const addBtn = dropdown.querySelector('[data-action="open-task-modal"]');
+        if (addBtn) addBtn.dataset.colId = colId;
+        dropdown.dataset.colId = colId;
+
+        const membersWrap = document.getElementById('colActionsMembers');
+        if (membersWrap) {
+            const col = appData.columns.find(c => c.id === colId);
+            const colMembers = (col && col.members) || [];
+            const memberAvatars = colMembers.map(m => {
+                return `<div class="avatar" style="width:26px;height:26px;font-size:0.6rem;cursor:pointer;" title="Remove ${escapeHtml(m)}" data-action="remove-column-member" data-col-id="${colId}" data-member="${escapeHtml(m)}">${getAvatarContent(m)}</div>`;
+            }).join('');
+            membersWrap.innerHTML = memberAvatars + `<button data-action="add-column-member" data-arg="${colId}" style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.07);border:1.5px dashed rgba(255,255,255,0.2);color:var(--text-muted);font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;" title="Add member">+</button>`;
+        }
+
+        if (alreadyOpenForThis) {
+            dropdown.classList.remove('open');
+            return;
+        }
+        const btn = event.currentTarget;
+        const rect = btn.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 6) + 'px';
+        dropdown.style.left = 'auto';
+        dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+        dropdown.classList.add('open');
+    }
+
+    function closeColumnActionsMenu() {
+        const dropdown = document.getElementById('colActionsDropdown');
+        if (dropdown) dropdown.classList.remove('open');
+    }
+
+    document.addEventListener('click', (event) => {
+        const dropdown = document.getElementById('colActionsDropdown');
+        if (!dropdown || !dropdown.classList.contains('open')) return;
+        if (!event.target.closest('#colActionsDropdown') && !event.target.closest('.column-actions-btn')) closeColumnActionsMenu();
+    }, true);
+
     function togglePostingSection(type) {
         const item = document.querySelector('.posting-accordion-item[data-type="' + type + '"]');
         if (item) item.classList.toggle('open');
@@ -11905,6 +12118,7 @@
             case 'go-back-from-forgot': goBackFromForgot(); break;
             case 'submit-reset-password': submitResetPassword(); break;
             case 'switch-view': switchView(el.dataset.arg); break;
+            case 'set-board-display-mode': setBoardDisplayMode(el.dataset.arg); break;
             case 'open-modal': openModal(el.dataset.arg); break;
             case 'bulk-move': bulkMove(); break;
             case 'bulk-delete': bulkDelete(); break;
