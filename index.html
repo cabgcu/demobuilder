@@ -458,6 +458,13 @@
             letter-spacing: 0.5px;
         }
 
+        .column-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
         .column-count-badge {
             padding: 3px 10px;
             border-radius: 999px;
@@ -1465,6 +1472,19 @@
         .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; pointer-events: none; }
 
         /* PRIORITY */
+        .card-meta-line { margin-top: 4px; font-size: 0.72rem; color: var(--text-muted); font-weight: 500; }
+        .countdown-pill {
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border: 1px solid;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
         .priority-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
         .priority-high  { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.6); }
         .priority-med   { background: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.6); }
@@ -4923,13 +4943,15 @@
                 return isMember;
             });
         }
-        boardCols.forEach(col => {
+        const columnDotColors = ['#22c55e', '#eab308', '#a855f7', '#3b82f6'];
+        boardCols.forEach((col, colIdx) => {
             const colEl = document.createElement('div');
             colEl.className = 'kanban-column';
             const header = document.createElement('div');
             header.className = 'column-header';
             const colMembers = col.members || [];
             const directTaskCount = appData.tasks.filter(t => t.columnId === col.id).length;
+            const dotColor = columnDotColors[colIdx % columnDotColors.length];
             const memberAvatars = colMembers.map((m, i) => {
                 return `<div class="avatar" style="width:22px;height:22px;font-size:0.55rem;border:2px solid #111;margin-left:${i===0?'0':'2px'};cursor:pointer;" title="Remove ${escapeHtml(m)}" data-action="remove-column-member" data-col-id="${col.id}" data-member="${escapeHtml(m)}">${getAvatarContent(m)}</div>`;
             }).join('');
@@ -4937,7 +4959,10 @@
             let assignedHtml = col.assignedTo ? `<div class="column-assignee">${escapeHtml(col.assignedTo)}</div>` : '';
             header.innerHTML = `
                 <div style="display: flex; flex-direction: column; flex-grow: 1; padding-right: 10px; align-items: flex-start;">
-                    <span style="line-height: 1.2;">${escapeHtml(col.title)}</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="column-dot" style="background:${dotColor}; box-shadow:0 0 8px ${dotColor}80;"></span>
+                        <span style="line-height: 1.2;">${escapeHtml(col.title)}</span>
+                    </div>
                     ${assignedHtml}
                     ${memberBar}
                 </div>
@@ -4977,39 +5002,40 @@
                 const taskEl = document.createElement('div');
                 let isOverdue = false;
                 let postingHtml = '';
-                
+                let countdownPillHtml = '';
+
                 if (task.dueDate) {
                     const evDate = new Date(task.dueDate);
                     const now = new Date();
                     const diffMs = evDate - now;
                     const isPast = diffMs < 0;
                     isOverdue = isPast && !task.completed;
-                    
+
                     const absDiff = Math.abs(diffMs);
                     const totalMins = Math.floor(absDiff / 60000);
                     const days = Math.floor(totalMins / 1440);
                     const hrs = Math.floor((totalMins % 1440) / 60);
                     const mins = totalMins % 60;
                     let countdownStr = '';
-                    let countdownColor = '';
-                    
-                    if (isPast) { 
-                        countdownStr = task.completed ? 'Event passed' : '⚠️ Overdue'; 
-                        countdownColor = task.completed ? 'color: #a1a1aa;' : 'color: #ef4444;'; 
+                    let pillBg, pillColor, pillBorder;
+
+                    if (isPast) {
+                        countdownStr = task.completed ? 'Event passed' : '⚠️ Overdue';
+                        if (task.completed) { pillBg = 'rgba(161,161,170,.12)'; pillColor = '#a1a1aa'; pillBorder = 'rgba(161,161,170,.3)'; }
+                        else { pillBg = 'rgba(239,68,68,.12)'; pillColor = '#ef4444'; pillBorder = 'rgba(239,68,68,.3)'; }
                     }
-                    else if (days > 0) { countdownStr = days + 'd ' + hrs + 'h away'; countdownColor = days <= 3 ? 'color: #f59e0b;' : 'color: #22c55e;'; }
-                    else if (hrs > 0) { countdownStr = hrs + 'h ' + mins + 'm away'; countdownColor = 'color: #ef4444;'; }
-                    else { countdownStr = mins + 'm away'; countdownColor = 'color: #ef4444;'; }
-                    
+                    else if (days > 0) {
+                        countdownStr = days + 'd ' + hrs + 'h away';
+                        if (days <= 3) { pillBg = 'rgba(245,158,11,.12)'; pillColor = '#f59e0b'; pillBorder = 'rgba(245,158,11,.3)'; }
+                        else { pillBg = 'rgba(34,197,94,.12)'; pillColor = '#4ade80'; pillBorder = 'rgba(34,197,94,.3)'; }
+                    }
+                    else if (hrs > 0) { countdownStr = hrs + 'h ' + mins + 'm away'; pillBg = 'rgba(239,68,68,.12)'; pillColor = '#ef4444'; pillBorder = 'rgba(239,68,68,.3)'; }
+                    else { countdownStr = mins + 'm away'; pillBg = 'rgba(239,68,68,.12)'; pillColor = '#ef4444'; pillBorder = 'rgba(239,68,68,.3)'; }
+
                     const dateStr = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(evDate);
                     const timeStr = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(evDate);
-                    postingHtml = `<div style="margin-top: 12px; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.78rem; color: #fff; font-weight: 700;">📅 ${dateStr} @ ${timeStr}</span>
-                            <span style="font-size: 0.72rem; font-weight: 800; ${countdownColor}">${countdownStr}</span>
-                        </div>
-                        ${task.eventLocation ? `<div style="font-size: 0.75rem; color: #a1a1aa; font-weight: 600;">📍 ${task.eventLocation}</div>` : ''}
-                    </div>`;
+                    postingHtml = `<div class="card-meta-line">📅 ${dateStr} &bull; ${timeStr}${task.eventLocation ? ' &bull; ' + escapeHtml(task.eventLocation) : ''}</div>`;
+                    countdownPillHtml = `<span class="countdown-pill" style="background:${pillBg}; color:${pillColor}; border-color:${pillBorder};">${countdownStr}</span>`;
                 }
 
                 if (task._mirrored) taskEl.classList.add('is-mirrored');
@@ -5069,7 +5095,7 @@
                     </div>
                 `;
 
-                taskEl.innerHTML = `${coverHtml}${completeBtnHtml}${labelsHtml}<div class="card-title" style="font-weight: 800; font-size: 1rem; margin-bottom: 5px; padding-right: 36px; word-break: break-word;">${priorityDotHtml}${escapeHtml(task.title || 'Untitled Task')}</div>${postingHtml}${clHtml}<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">${orderBtnsHtml}<div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">${attachmentBadge}${membersHtml}</div></div>`;
+                taskEl.innerHTML = `${coverHtml}${completeBtnHtml}${labelsHtml}<div class="card-title" style="font-weight: 800; font-size: 1rem; margin-bottom: 5px; padding-right: 36px; word-break: break-word;">${priorityDotHtml}${escapeHtml(task.title || 'Untitled Task')}</div>${postingHtml}${clHtml}<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">${orderBtnsHtml}<div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">${attachmentBadge}${membersHtml}${countdownPillHtml}</div></div>`;
                 taskEl.onclick = (e) => {
                     if (e.target.classList.contains('complete-btn')) return;
                     if (e.shiftKey || selectedCards.size > 0) {
