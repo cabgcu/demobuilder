@@ -2210,6 +2210,43 @@
         .login-box .btn-action { background: var(--accent); border-radius: 12px; box-shadow: none; }
         .login-box .btn-action:hover { transform: none; filter: brightness(1.1); }
 
+        /* Attachment drop zone */
+        #attachmentsSection { position: relative; border-radius: 16px; transition: background .15s, box-shadow .15s; }
+        .attachment-drop-hint { display: none; }
+        #attachmentsSection.file-drag-over { background: rgba(124, 58, 237, .1); box-shadow: 0 0 0 2px var(--accent-text) inset; }
+        #attachmentsSection.file-drag-over .attachment-drop-hint {
+            display: block; text-align: center; padding: 14px; color: var(--accent-text); font-weight: 500; font-size: 0.85rem;
+        }
+
+        /* Attachment preview gallery */
+        #attachmentPreviewModal { gap: 12px; }
+        #attachmentPreviewModal .close-modal { position: fixed; z-index: 3; }
+        .preview-frame { display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; max-width: 100%; }
+        .preview-stage img { display: block; max-width: min(1100px, 84vw); max-height: 80vh; max-height: 80dvh; border-radius: 12px; object-fit: contain; box-shadow: 0 30px 60px rgba(0,0,0,.5); }
+        .preview-stage iframe { display: block; width: min(1100px, 84vw); height: 78vh; height: 78dvh; border: none; border-radius: 12px; background: #000; }
+        .preview-caption { display: flex; align-items: center; gap: 10px; max-width: 84vw; font-size: 0.85rem; color: var(--text-muted); }
+        .preview-caption .preview-name { color: var(--text-main); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .preview-caption .preview-count { flex-shrink: 0; padding: 2px 10px; border-radius: 100px; background: var(--fill); font-size: 0.75rem; }
+        .preview-nav {
+            flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            background: rgba(16, 16, 18, .6); border: 1px solid var(--hairline); color: var(--text-main);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            transition: background .15s;
+            position: fixed; top: 50%; transform: translateY(-50%); z-index: 3;
+        }
+        .preview-nav.prev { left: 24px; }
+        .preview-nav.next { right: 24px; }
+        .preview-nav:hover { background: rgba(60, 60, 64, .7); }
+        .preview-nav svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        @media (max-width: 900px) {
+            .preview-nav { top: auto; transform: none; bottom: calc(24px + env(safe-area-inset-bottom)); }
+            .preview-nav.prev { left: calc(50% - 60px); }
+            .preview-nav.next { right: calc(50% - 60px); }
+            .preview-stage img, .preview-stage iframe { max-width: 92vw; width: auto; }
+            .preview-stage iframe { width: 92vw; height: 70dvh; }
+        }
+
         /* Quiet scrollbars */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent !important; }
@@ -2872,7 +2909,7 @@
                                     <button type="button" class="task-option-btn" data-action="dom-click-target" data-target="coverUploadInput">Cover</button>
                                     <button type="button" class="task-option-btn" data-action="prompt-attach-link">Attach Link</button>
                                     <button type="button" class="task-option-btn" data-action="dom-click-target" data-target="driveUploadInput">Upload File</button>
-                                    <input type="file" id="driveUploadInput" style="display: none;" data-change-action="handle-drive-upload">
+                                    <input type="file" id="driveUploadInput" multiple style="display: none;" data-change-action="handle-drive-upload">
                                 </div>
                                 <div class="task-options-group">
                                     <span class="task-options-label">Actions</span>
@@ -2960,6 +2997,7 @@
                                 </div>
                             </div>
                             <div id="attachmentsContainer"></div>
+                            <div class="attachment-drop-hint">Drop files here to upload them to Google Drive</div>
                         </div>
 
                         <div class="task-section">
@@ -3298,7 +3336,16 @@
 <!-- Attachment Preview Modal (lightbox) -->
 <div id="attachmentPreviewModal" class="modal-overlay attachment-preview-overlay" data-action="close-modal" data-arg="attachmentPreviewModal">
     <button class="close-modal" data-action="close-modal" data-arg="attachmentPreviewModal" style="top: 20px; right: 20px;">&times;</button>
-    <img id="attachmentPreviewImg" src="" alt="Attachment preview" data-action="stop-propagation">
+    <button type="button" class="preview-nav prev" data-action="preview-step" data-arg="-1" aria-label="Previous">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="preview-frame">
+        <div id="attachmentPreviewStage" class="preview-stage" data-action="stop-propagation"></div>
+        <div id="attachmentPreviewCaption" class="preview-caption" data-action="stop-propagation"></div>
+    </div>
+    <button type="button" class="preview-nav next" data-action="preview-step" data-arg="1" aria-label="Next">
+        <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
 </div>
 
 <div id="userActivityModal" class="modal-overlay" data-action="close-modal" data-arg="userActivityModal">
@@ -3647,48 +3694,97 @@
         return getInitials(name);
     }
 
+    function readFileAsBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result.split(',')[1]);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+        });
+    }
+
     async function handleDriveUpload(event) {
         const fileInput = event.target;
-        const file = fileInput.files[0];
-        if (!file) return;
-        showToast("Uploading file... Please wait.");
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            const base64Data = e.target.result.split(',')[1];
+        const files = Array.from(fileInput.files || []);
+        fileInput.value = '';
+        await uploadFilesToDrive(files);
+    }
+
+    // Uploads one or many files to Google Drive and attaches them to the card
+    // that was open when the upload started (even if the user switches cards
+    // before it finishes). Runs a few uploads at a time.
+    async function uploadFilesToDrive(files) {
+        if (!files.length || !currentEditingTask) return;
+        const task = currentEditingTask;
+        const total = files.length;
+        let done = 0, failed = 0, next = 0;
+        const label = () => total === 1 ? 'Uploading file... Please wait.' : `Uploading ${Math.min(done + failed + 1, total)} of ${total}...`;
+        showToast(label());
+
+        const uploadOne = async (file) => {
             try {
+                const base64Data = await readFileAsBase64(file);
                 const response = await fetch(GAS_UPLOAD_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ filename: file.name, mimeType: file.type, base64: base64Data })
                 });
                 const result = await response.json();
-                if (result.success) {
-                    if (!currentEditingTask.attachments) currentEditingTask.attachments = [];
-                    let directUrl = toDirectDriveUrl(result.url);
-                    currentEditingTask.attachments.push({
-                        id: generateId(),
-                        name: result.name,
-                        url: directUrl,
-                        viewerUrl: result.url,
-                        size: (file.size / 1024 / 1024).toFixed(2),
-                        mimeType: file.type,
-                        isLink: false,
-                        date: new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())
-                    });
-                    renderAttachments();
-                    autoSaveAttachments();
-                    showToast("File uploaded successfully!");
-                } else {
-                    showToast("Upload failed: " + result.error);
-                }
+                if (!result.success) throw new Error(result.error || 'Upload failed');
+                if (!task.attachments) task.attachments = [];
+                task.attachments.push({
+                    id: generateId(),
+                    name: result.name,
+                    url: toDirectDriveUrl(result.url),
+                    viewerUrl: result.url,
+                    size: (file.size / 1024 / 1024).toFixed(2),
+                    mimeType: file.type,
+                    isLink: false,
+                    date: new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())
+                });
+                done++;
+                saveUploadedAttachments(task);
             } catch (err) {
-                console.error("Drive upload error:", err);
-                showToast("Network error during upload.");
+                console.error('Drive upload error:', file.name, err);
+                failed++;
             }
-            fileInput.value = '';
+            if (done + failed < total) showToast(label());
         };
-        reader.readAsDataURL(file);
+
+        const worker = async () => { while (next < total) await uploadOne(files[next++]); };
+        await Promise.all(Array.from({ length: Math.min(3, total) }, worker));
+
+        if (failed === 0) showToast(total === 1 ? 'File uploaded successfully!' : `${total} files uploaded to Google Drive!`);
+        else if (done === 0) showToast(total === 1 ? 'Upload failed. Please try again.' : `All ${total} uploads failed. Please try again.`);
+        else showToast(`${done} of ${total} files uploaded — ${failed} failed.`);
     }
+
+    function saveUploadedAttachments(task) {
+        if (task === currentEditingTask) renderAttachments();
+        const taskIndex = task.id ? appData.tasks.findIndex(t => t.id === task.id) : -1;
+        if (taskIndex > -1) {
+            appData.tasks[taskIndex].attachments = task.attachments;
+            saveData();
+        }
+    }
+
+    function setupAttachmentDropZone() {
+        const zone = document.getElementById('attachmentsSection');
+        if (!zone) return;
+        const hasFiles = e => e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+        let depth = 0;
+        zone.addEventListener('dragenter', e => { if (!hasFiles(e)) return; e.preventDefault(); depth++; zone.classList.add('file-drag-over'); });
+        zone.addEventListener('dragover', e => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+        zone.addEventListener('dragleave', e => { if (!hasFiles(e)) return; if (--depth <= 0) { depth = 0; zone.classList.remove('file-drag-over'); } });
+        zone.addEventListener('drop', e => {
+            if (!hasFiles(e)) return;
+            e.preventDefault(); e.stopPropagation();
+            depth = 0; zone.classList.remove('file-drag-over');
+            uploadFilesToDrive(Array.from(e.dataTransfer.files || []));
+        });
+    }
+    document.addEventListener('DOMContentLoaded', setupAttachmentDropZone);
+    if (document.readyState !== 'loading') setupAttachmentDropZone();
 
     async function autoSaveAttachments() {
         const taskId = document.getElementById('taskModalTaskId').value;
@@ -9750,11 +9846,12 @@
                 }
             } else {
                 const isImage = att.mimeType ? att.mimeType.startsWith('image/') : att.name.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i);
+                const canPreview = !!getAttachmentPreviewItem(att);
+                const previewAttrs = canPreview ? `data-action="open-attachment-preview" data-arg="${att.id}" title="Click to preview"` : '';
                 if (isImage) {
-                    const safeUrl = displayUrl.replace(/'/g, "\\'");
-                    thumbHtml = `<div class="attachment-thumb clickable" style="background-image: url('${displayUrl}')" data-action="open-attachment-preview" data-arg="${safeUrl}" title="Click to preview"></div>`;
+                    thumbHtml = `<div class="attachment-thumb${canPreview ? ' clickable' : ''}" style="background-image: url('${displayUrl}')" ${previewAttrs}></div>`;
                 } else {
-                    thumbHtml = `<div class="attachment-thumb" style="background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">📄</div>`;
+                    thumbHtml = `<div class="attachment-thumb${canPreview ? ' clickable' : ''}" style="background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:1.4rem;" ${previewAttrs}>📄</div>`;
                 }
                 const sizeStr = isNaN(parseFloat(att.size)) ? '' : `${att.size} MB`;
                 metaText = `${att.date}${sizeStr ? ' \u2022 ' + sizeStr : ''}`;
@@ -11690,6 +11787,10 @@
 
     function closeModal(e, id) {
         if (e && e.target.classList.contains('modal-content')) return;
+        if (id === 'attachmentPreviewModal') {
+            const stage = document.getElementById('attachmentPreviewStage');
+            setTimeout(() => { if (stage && !document.getElementById('attachmentPreviewModal').classList.contains('show')) stage.innerHTML = ''; }, 260);
+        }
         if (id === 'taskModal') {
             clearTimeout(_autoSaveTimer);
             doAutoSave(true);
@@ -11700,13 +11801,75 @@
         setTimeout(() => { modal.style.display = 'none'; }, 250);
     }
 
-    function openAttachmentPreview(url) {
-        if (!url) return;
-        document.getElementById('attachmentPreviewImg').src = url;
+    // ── Attachment preview gallery ─────────────────────────────────────────
+    // Images render directly; other Drive uploads (videos, PDFs, docs) use
+    // Drive's embeddable /preview page. Links to other services aren't included.
+    let _previewItems = [];
+    let _previewIndex = 0;
+
+    function getAttachmentPreviewItem(att) {
+        if (!att || (att.isLink && att.size !== 'Google Drive')) return null;
+        const isImage = att.mimeType ? att.mimeType.startsWith('image/') : /\.(jpe?g|gif|png|webp|svg)$/i.test(att.name || '');
+        if (isImage && att.url) return { id: att.id, name: att.name || 'Image', kind: 'image', src: toDirectDriveUrl(att.url) };
+        const raw = att.viewerUrl || att.url || '';
+        const fid = raw.match(/\/d\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (!fid) return null;
+        return { id: att.id, name: att.name || 'File', kind: 'frame', src: `https://drive.google.com/file/d/${fid[1]}/preview` };
+    }
+
+    function openAttachmentPreview(attId) {
+        if (!attId || !currentEditingTask) return;
+        _previewItems = (currentEditingTask.attachments || []).map(getAttachmentPreviewItem).filter(Boolean);
+        const idx = _previewItems.findIndex(it => it.id === attId);
+        if (idx === -1) return;
+        _previewIndex = idx;
+        renderAttachmentPreview();
         openModal('attachmentPreviewModal');
     }
 
+    function stepAttachmentPreview(delta) {
+        if (_previewItems.length < 2) return;
+        _previewIndex = (_previewIndex + delta + _previewItems.length) % _previewItems.length;
+        renderAttachmentPreview();
+    }
+
+    function renderAttachmentPreview() {
+        const item = _previewItems[_previewIndex];
+        if (!item) return;
+        const stage = document.getElementById('attachmentPreviewStage');
+        const attr = v => String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        stage.innerHTML = item.kind === 'image'
+            ? `<img src="${attr(item.src)}" alt="${attr(item.name)}">`
+            : `<iframe src="${attr(item.src)}" title="${attr(item.name)}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+        const multi = _previewItems.length > 1;
+        document.getElementById('attachmentPreviewCaption').innerHTML =
+            `<span class="preview-name">${escapeHtml(item.name)}</span>${multi ? `<span class="preview-count">${_previewIndex + 1} of ${_previewItems.length}</span>` : ''}`;
+        document.querySelectorAll('#attachmentPreviewModal .preview-nav').forEach(b => { b.style.display = multi ? '' : 'none'; });
+        // Warm the neighbouring images so clicking through feels instant
+        [-1, 1].forEach(d => {
+            const n = _previewItems[(_previewIndex + d + _previewItems.length) % _previewItems.length];
+            if (multi && n && n.kind === 'image') { const im = new Image(); im.src = n.src; }
+        });
+    }
+
+    (function setupPreviewSwipe() {
+        const modal = document.getElementById('attachmentPreviewModal');
+        if (!modal) return;
+        let x0 = null, y0 = null;
+        modal.addEventListener('touchstart', e => { const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; }, { passive: true });
+        modal.addEventListener('touchend', e => {
+            if (x0 === null) return;
+            const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+            x0 = y0 = null;
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) stepAttachmentPreview(dx < 0 ? 1 : -1);
+        }, { passive: true });
+    })();
+
     window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            const pm = document.getElementById('attachmentPreviewModal');
+            if (pm && pm.classList.contains('show')) { e.preventDefault(); stepAttachmentPreview(e.key === 'ArrowRight' ? 1 : -1); return; }
+        }
         if (e.key === 'Escape') {
             const previewModal = document.getElementById('attachmentPreviewModal');
             if (previewModal && previewModal.classList.contains('show')) {
@@ -12530,6 +12693,7 @@
             case 'remove-label': removeLabel(el.dataset.arg); break;
             case 'remove-cf': removeCF(el.dataset.arg); break;
             case 'open-attachment-preview': e.preventDefault(); e.stopPropagation(); openAttachmentPreview(el.dataset.arg); break;
+            case 'preview-step': e.stopPropagation(); stepAttachmentPreview(parseInt(el.dataset.arg, 10)); break;
             case 'download-attachment': e.preventDefault(); e.stopPropagation(); downloadAttachment(el.dataset.arg); break;
             case 'rename-attachment': e.preventDefault(); e.stopPropagation(); renameAttachment(el.dataset.arg); break;
             case 'delete-attachment': e.preventDefault(); e.stopPropagation(); deleteAttachment(el.dataset.arg); break;
