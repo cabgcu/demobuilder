@@ -1939,7 +1939,15 @@
             padding: 4px 8px; border-radius: 8px;
         }
         .col-action-btn:hover { background: var(--fill); border-color: transparent; color: var(--text-main); }
-        .column-body { padding: 4px 10px 10px; gap: 8px; }
+        .column-body { padding: 4px 10px 96px; gap: 8px; }
+        #view-board { padding-bottom: 16px; align-items: stretch; }
+        #view-board .add-col-btn { align-self: flex-start; }
+        .add-task-btn { margin-top: 0; flex-shrink: 0; }
+        @media (max-width: 900px) {
+            #view-board.app-view { padding-bottom: 0 !important; }
+            #view-board.board-container { padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important; }
+            .column-body { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+        }
         .column-body.drag-over { background: rgba(10, 132, 255, .06); border-radius: 14px; }
 
         /* Cards */
@@ -2064,13 +2072,13 @@
 
         /* Modals & sheets */
         .modal-overlay {
-            background: rgba(0, 0, 0, .45);
-            backdrop-filter: blur(20px) saturate(120%);
-            -webkit-backdrop-filter: blur(20px) saturate(120%);
+            background: rgba(0, 0, 0, .2);
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
         }
         .modal-content {
-            background: var(--surface-glass);
-            border: 1px solid var(--hairline);
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .1);
             border-radius: 24px;
             backdrop-filter: blur(40px) saturate(180%);
             -webkit-backdrop-filter: blur(40px) saturate(180%);
@@ -2085,7 +2093,7 @@
         .close-modal:hover, .cabbie-close-btn:hover { background: var(--fill-hover); color: var(--text-main); transform: none; }
         .modal-cover { background-color: transparent; background-image: none; }
         .modal-cover:not(.has-cover-image) .modal-cover-scrim { display: none; }
-        .modal-cover-scrim { background: linear-gradient(to top, rgba(18, 18, 20, .85), rgba(18, 18, 20, .3) 55%, transparent); }
+        .modal-cover-scrim { background: linear-gradient(to top, rgba(0, 0, 0, .55), rgba(0, 0, 0, .15) 55%, transparent); }
         .modal-cover-title-input { font-weight: 700; letter-spacing: -0.02em; }
         .cover-action-btn { background: rgba(30,30,32,.6); border: 1px solid var(--hairline); font-weight: 500; border-radius: 100px; }
         .cover-action-btn:hover { background: rgba(60,60,64,.7); border-color: var(--hairline); }
